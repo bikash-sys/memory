@@ -265,11 +265,32 @@ backend:
           - All response times under 1 second
 
 frontend:
-  - task: "Google Maps Display Fix"
+  - task: "Replace Google Maps with Leaflet + OpenStreetMap"
     implemented: true
     working: "NA"
     files:
-      - "/app/frontend/.env"
+      - "/app/frontend/src/pages/MapPage.jsx"
+      - "/app/frontend/package.json"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Replaced Google Maps with free Leaflet + OpenStreetMap:
+          - Installed leaflet@1.9.4 and react-leaflet@5.0.0
+          - Removed all Google Maps dependencies (@react-google-maps/api)
+          - Completely rewrote MapPage.jsx using Leaflet components
+          - Map now uses OpenStreetMap tiles (100% free, no API key needed)
+          - Custom marker icons with emojis and colors for each mood category
+          - All existing features preserved: pin dropping, memory creation, mood detection
+          - No Google Maps API key required anymore
+  
+  - task: "Zone Display and Interaction"
+    implemented: true
+    working: "NA"
+    files:
       - "/app/frontend/src/pages/MapPage.jsx"
     stuck_count: 0
     priority: "high"
@@ -277,7 +298,23 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Updated Google Maps API key in .env to fix map display"
+        comment: |
+          Implemented zone visualization and interaction:
+          - Zones displayed as purple circles (2km radius) with zone marker (🌟)
+          - "Generate Zones" button in header to trigger zone creation
+          - Click on zone marker or circle opens zone details dialog
+          - Zone dialog shows:
+            • Zone name (AI-generated)
+            • Zone description (AI-generated one-liner)
+            • Memory count
+            • List of all memories in zone
+          - Memory list features:
+            • Two tabs: "All" and "Friends"
+            • Sort by date (newest first)
+            • Filter by friends only
+            • Each memory shows: emoji, username, date, text, image
+          - Zone legend added to map
+          - Zones auto-refresh after memory creation
 
   - task: "Detect Mood Button Implementation"
     implemented: true
