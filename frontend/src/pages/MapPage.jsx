@@ -418,40 +418,65 @@ function MapPage({ token, user, onLogout }) {
               </Marker>
             )}
 
-            {/* Zones */}
-            {zones.map((zone) => (
-              <div key={zone.id}>
-                <Circle
-                  center={[zone.center_latitude, zone.center_longitude]}
-                  radius={zone.radius_km * 1000}
-                  pathOptions={{
-                    fillColor: '#9333ea',
-                    fillOpacity: 0.1,
-                    color: '#9333ea',
-                    weight: 2,
-                    dashArray: '5, 5'
-                  }}
-                  eventHandlers={{
-                    click: () => handleZoneClick(zone)
-                  }}
-                />
-                <Marker
-                  position={[zone.center_latitude, zone.center_longitude]}
-                  icon={createZoneIcon()}
-                  eventHandlers={{
-                    click: () => handleZoneClick(zone)
-                  }}
-                >
-                  <Popup>
-                    <div className="p-2">
-                      <h3 className="font-bold text-lg">{zone.name}</h3>
-                      <p className="text-sm text-gray-600">{zone.description}</p>
-                      <p className="text-xs text-gray-500 mt-2">{zone.memory_count} memories</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              </div>
-            ))}
+            {/* Zones - Multiple circles for fade effect */}
+            {zones.map((zone) => {
+              const zoneColor = getZoneColor(zone);
+              return (
+                <div key={zone.id}>
+                  {/* Outer fading circles for gradient effect */}
+                  <Circle
+                    center={[zone.center_latitude, zone.center_longitude]}
+                    radius={zone.radius_km * 1000}
+                    pathOptions={{
+                      fillColor: zoneColor,
+                      fillOpacity: 0.05,
+                      color: zoneColor,
+                      weight: 0,
+                    }}
+                  />
+                  <Circle
+                    center={[zone.center_latitude, zone.center_longitude]}
+                    radius={zone.radius_km * 1000 * 0.7}
+                    pathOptions={{
+                      fillColor: zoneColor,
+                      fillOpacity: 0.1,
+                      color: zoneColor,
+                      weight: 0,
+                    }}
+                  />
+                  <Circle
+                    center={[zone.center_latitude, zone.center_longitude]}
+                    radius={zone.radius_km * 1000 * 0.4}
+                    pathOptions={{
+                      fillColor: zoneColor,
+                      fillOpacity: 0.15,
+                      color: zoneColor,
+                      weight: 0,
+                    }}
+                    eventHandlers={{
+                      click: () => handleZoneClick(zone)
+                    }}
+                  />
+                  
+                  {/* Zone center marker */}
+                  <Marker
+                    position={[zone.center_latitude, zone.center_longitude]}
+                    icon={createZoneIcon()}
+                    eventHandlers={{
+                      click: () => handleZoneClick(zone)
+                    }}
+                  >
+                    <Popup>
+                      <div className="p-2">
+                        <h3 className="font-bold text-lg">{zone.name}</h3>
+                        <p className="text-sm text-gray-600">{zone.description}</p>
+                        <p className="text-xs text-gray-500 mt-2">{zone.memory_count} memories</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                </div>
+              );
+            })}
 
             {/* Existing memories */}
             {memories.map((memory) => {
