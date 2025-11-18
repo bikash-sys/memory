@@ -945,6 +945,10 @@ class BangaloreMemoryMapTester:
         self.test_create_memory()
         self.test_get_memories()
         
+        # ZONE SYSTEM TESTS (NEW - as per review requirements)
+        print("\n📋 ZONE SYSTEM TESTS")
+        self.test_zone_system_comprehensive()
+        
         # Friend System Tests
         print("\n📋 FRIEND SYSTEM TESTS")
         self.test_search_users()
