@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix Google Maps with API key, implement Detect Mood feature with Gemini API, enhance memory photo upload, and add profile edit section (name, city/region, profile picture)"
+user_problem_statement: "Replace Google Maps with free alternative (Leaflet + OpenStreetMap), implement auto-generated zones when 5+ memories exist in 2km radius, AI-powered zone names and descriptions using Emergent LLM, zone click to view memories with sorting (date) and filtering (friends only)"
 
 backend:
   - task: "Google Maps API Key Configuration"
