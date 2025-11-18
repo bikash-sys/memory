@@ -260,7 +260,18 @@ Examples:
         logging.error(f"Region naming error: {e}")
         return f"{mood.title()} Zone"
 
-def cluster_memories_by_location(memories: List[dict], radius_km: float = 1.0) -> List[dict]:
+import math
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance between two points using Haversine formula (in km)"""
+    R = 6371  # Earth's radius in km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    return R * c
+
+def cluster_memories_by_location(memories: List[dict], radius_km: float = 2.0) -> List[dict]:
     """Simple clustering of memories by geographic proximity"""
     if not memories:
         return []
@@ -281,29 +292,112 @@ def cluster_memories_by_location(memories: List[dict], radius_km: float = 1.0) -
         }
         used_memory_ids.add(memory['id'])
         
-        # Find nearby memories
+        # Find nearby memories within radius_km
         for other_memory in memories:
             if other_memory['id'] in used_memory_ids:
                 continue
             
-            # Calculate distance (simplified haversine)
-            lat_diff = abs(memory['latitude'] - other_memory['latitude'])
-            lng_diff = abs(memory['longitude'] - other_memory['longitude'])
-            distance_km = ((lat_diff ** 2 + lng_diff ** 2) ** 0.5) * 111  # Rough conversion
+            # Calculate exact distance using Haversine
+            distance_km = haversine_distance(
+                memory['latitude'], 
+                memory['longitude'],
+                other_memory['latitude'], 
+                other_memory['longitude']
+            )
             
             if distance_km <= radius_km:
                 cluster['memories'].append(other_memory)
                 cluster['mood_counts'][other_memory['category']] = cluster['mood_counts'].get(other_memory['category'], 0) + 1
                 used_memory_ids.add(other_memory['id'])
         
-        # Calculate cluster center (average)
-        if len(cluster['memories']) >= 3:  # Only create zones with 3+ memories
+        # Calculate cluster center (average) and only create zones with 5+ memories
+        if len(cluster['memories']) >= 5:
             cluster['center_lat'] = sum(m['latitude'] for m in cluster['memories']) / len(cluster['memories'])
             cluster['center_lng'] = sum(m['longitude'] for m in cluster['memories']) / len(cluster['memories'])
             cluster['dominant_mood'] = max(cluster['mood_counts'], key=cluster['mood_counts'].get)
             clusters.append(cluster)
     
     return clusters
+
+async def generate_zone_name_and_description(memories: List[dict], center_lat: float, center_lng: float) -> tuple:
+    """Generate AI-powered zone name and description based on memories"""
+    try:
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        
+        if not api_key:
+            return "Memory Zone", "A collection of memories"
+        
+        # Prepare memory summaries
+        memory_texts = []
+        mood_counts = {}
+        for mem in memories[:10]:  # Use first 10 memories
+            if mem.get('content_text'):
+                memory_texts.append(mem['content_text'][:100])  # First 100 chars
+            mood = mem.get('category', 'general')
+            mood_counts[mood] = mood_counts.get(mood, 0) + 1
+        
+        dominant_mood = max(mood_counts, key=mood_counts.get) if mood_counts else 'general'
+        memory_count = len(memories)
+        
+        # Initialize LlmChat with Gemini model
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"zone-naming-{uuid.uuid4()}",
+            system_message="You are a creative naming assistant. Generate poetic zone names and descriptions."
+        ).with_model("gemini", "gemini-2.0-flash")
+        
+        # Create user message
+        memory_preview = "\n".join([f"- {text}" for text in memory_texts[:5]])
+        
+        user_message = UserMessage(
+            text=f"""Generate a creative name and description for a memory zone.
+
+Memory Count: {memory_count}
+Dominant Mood: {dominant_mood}
+Location: Latitude {center_lat:.4f}, Longitude {center_lng:.4f}
+
+Sample Memory Texts:
+{memory_preview}
+
+Generate:
+1. A creative, poetic zone name (2-5 words)
+2. A one-line description (max 15 words) capturing the essence
+
+Format your response EXACTLY as:
+NAME: [zone name]
+DESCRIPTION: [one-line description]
+
+Examples:
+NAME: Joyful Crossroads
+DESCRIPTION: Where laughter echoes and happy moments converge in celebration.
+
+NAME: Nostalgic Haven
+DESCRIPTION: A place of cherished memories and wistful reflections.
+"""
+        )
+        
+        response = await chat.send_message(user_message)
+        
+        # Parse response
+        lines = response.strip().split('\n')
+        zone_name = "Memory Zone"
+        zone_description = "A collection of shared memories"
+        
+        for line in lines:
+            if line.startswith('NAME:'):
+                zone_name = line.replace('NAME:', '').strip().strip('"\'')
+            elif line.startswith('DESCRIPTION:'):
+                zone_description = line.replace('DESCRIPTION:', '').strip().strip('"\'')
+        
+        # Fallback if parsing failed
+        if zone_name == "Memory Zone" and len(lines) >= 2:
+            zone_name = lines[0].replace('NAME:', '').strip().strip('"\'')
+            zone_description = lines[1].replace('DESCRIPTION:', '').strip().strip('"\'')
+        
+        return zone_name, zone_description
+    except Exception as e:
+        logging.error(f"Zone naming error: {e}")
+        return f"{dominant_mood.title()} Memory Zone", f"A collection of {memory_count} memories"
 
 
 # ===== AUTH ROUTES =====
