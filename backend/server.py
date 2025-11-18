@@ -745,6 +745,124 @@ async def get_nearby_friends_memories(
     return filtered_memories
 
 
+# ===== ZONE ROUTES =====
+
+@api_router.post("/zones/generate")
+async def generate_zones(user_id: str = Depends(get_current_user)):
+    """Auto-generate zones from all public memories"""
+    try:
+        # Get all public memories
+        now = datetime.now(timezone.utc).isoformat()
+        memories = await db.memories.find({
+            "$or": [
+                {"public_until": {"$gt": now}},
+                {"visibility": "public"}
+            ]
+        }, {"_id": 0}).to_list(10000)
+        
+        if len(memories) < 5:
+            return {"message": "Not enough memories to create zones", "zones_created": 0}
+        
+        # Cluster memories by location (2km radius, minimum 5 memories)
+        clusters = cluster_memories_by_location(memories, radius_km=2.0)
+        
+        if not clusters:
+            return {"message": "No zones with 5+ memories found", "zones_created": 0}
+        
+        # Clear existing zones (optional - or merge)
+        await db.zones.delete_many({})
+        
+        zones_created = 0
+        for cluster in clusters:
+            # Generate AI-powered name and description
+            zone_name, zone_description = await generate_zone_name_and_description(
+                cluster['memories'],
+                cluster['center_lat'],
+                cluster['center_lng']
+            )
+            
+            # Create zone
+            zone = Zone(
+                name=zone_name,
+                description=zone_description,
+                center_latitude=cluster['center_lat'],
+                center_longitude=cluster['center_lng'],
+                radius_km=2.0,
+                memory_count=len(cluster['memories']),
+                memory_ids=[m['id'] for m in cluster['memories']]
+            )
+            
+            await db.zones.insert_one(zone.model_dump())
+            zones_created += 1
+        
+        return {
+            "message": f"Successfully generated {zones_created} zones",
+            "zones_created": zones_created
+        }
+    except Exception as e:
+        logging.error(f"Zone generation error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate zones: {str(e)}")
+
+@api_router.get("/zones")
+async def get_zones(user_id: str = Depends(get_current_user)):
+    """Get all zones"""
+    zones = await db.zones.find({}, {"_id": 0}).sort("memory_count", -1).to_list(1000)
+    return zones
+
+@api_router.get("/zones/{zone_id}")
+async def get_zone(zone_id: str, user_id: str = Depends(get_current_user)):
+    """Get specific zone details"""
+    zone = await db.zones.find_one({"id": zone_id}, {"_id": 0})
+    if not zone:
+        raise HTTPException(status_code=404, detail="Zone not found")
+    return zone
+
+@api_router.get("/zones/{zone_id}/memories")
+async def get_zone_memories(
+    zone_id: str,
+    sort_by: Optional[str] = "date",  # date or friends
+    user_id: str = Depends(get_current_user)
+):
+    """Get memories in a zone with sorting and filtering options"""
+    # Get zone
+    zone = await db.zones.find_one({"id": zone_id}, {"_id": 0})
+    if not zone:
+        raise HTTPException(status_code=404, detail="Zone not found")
+    
+    # Get user's friends for filtering
+    friendships = await db.friendships.find({
+        "$or": [{"user_id_1": user_id}, {"user_id_2": user_id}],
+        "status": "accepted"
+    }).to_list(1000)
+    
+    friend_ids = []
+    for f in friendships:
+        friend_ids.append(f["user_id_1"] if f["user_id_2"] == user_id else f["user_id_2"])
+    
+    # Get memories in zone
+    memory_ids = zone.get('memory_ids', [])
+    if not memory_ids:
+        return {"zone": zone, "memories": [], "friends_memories": []}
+    
+    memories = await db.memories.find(
+        {"id": {"$in": memory_ids}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Sort by date (newest first)
+    if sort_by == "date":
+        memories.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    
+    # Separate friends' memories
+    friends_memories = [m for m in memories if m['user_id'] in friend_ids or m['user_id'] == user_id]
+    
+    return {
+        "zone": zone,
+        "all_memories": memories,
+        "friends_memories": friends_memories
+    }
+
+
 # ===== FRIEND ROUTES =====
 
 @api_router.post("/friends/request")
