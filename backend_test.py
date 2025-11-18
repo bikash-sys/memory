@@ -595,6 +595,290 @@ class BangaloreMemoryMapTester:
         
         return False
 
+    def test_zone_system_comprehensive(self):
+        """Comprehensive test of the zone system as per review requirements"""
+        print("\n🌟 COMPREHENSIVE ZONE SYSTEM TESTS")
+        
+        if not self.token:
+            self.log_test("Zone System Tests", False, "No token available")
+            return False
+        
+        # Step 1: Create multiple test users for diverse memories
+        print("\n👥 Creating Test Users...")
+        test_users = []
+        timestamp = datetime.now().strftime('%H%M%S')
+        
+        for i in range(3):
+            user_data = {
+                "username": f"zoneuser_{i}_{timestamp}",
+                "email": f"zoneuser_{i}_{timestamp}@example.com",
+                "password": f"ZonePass{i}123!"
+            }
+            
+            success, response = self.run_test(
+                f"Create Zone Test User {i+1}",
+                "POST",
+                "auth/register",
+                200,
+                data=user_data
+            )
+            
+            if success and 'token' in response:
+                test_users.append({
+                    'token': response['token'],
+                    'user_id': response['user']['id'],
+                    'username': response['user']['username']
+                })
+        
+        if len(test_users) < 2:
+            self.log_test("Zone System Setup", False, "Failed to create enough test users")
+            return False
+        
+        # Step 2: Create clustered memories (some close together, some far apart)
+        print("\n📍 Creating Clustered Memories...")
+        
+        # Bangalore locations for clustering
+        bangalore_clusters = [
+            # Cluster 1: Koramangala area (close together)
+            [
+                {"lat": 12.9279, "lng": 77.6271, "text": "Amazing coffee at Third Wave Coffee! Perfect start to my day ☕", "mood": "happy"},
+                {"lat": 12.9285, "lng": 77.6275, "text": "Shopping at Forum Mall was so much fun with friends 🛍️", "mood": "happy"},
+                {"lat": 12.9290, "lng": 77.6280, "text": "Romantic dinner at Toit brewery with my partner 💕", "mood": "romantic"},
+                {"lat": 12.9275, "lng": 77.6265, "text": "Nostalgic walk through my old neighborhood, so many memories here", "mood": "nostalgic"},
+                {"lat": 12.9282, "lng": 77.6278, "text": "Hilarious comedy show at The Humming Tree! Couldn't stop laughing 😂", "mood": "funny"},
+                {"lat": 12.9288, "lng": 77.6272, "text": "Peaceful morning jog in the park, feeling grateful", "mood": "general"}
+            ],
+            # Cluster 2: Indiranagar area (close together)
+            [
+                {"lat": 12.9784, "lng": 77.6408, "text": "Love the vibrant street art in Indiranagar! So inspiring 🎨", "mood": "happy"},
+                {"lat": 12.9790, "lng": 77.6415, "text": "Cozy evening at Cafe Coffee Day with old friends", "mood": "nostalgic"},
+                {"lat": 12.9788, "lng": 77.6412, "text": "Romantic sunset from the rooftop restaurant 🌅", "mood": "romantic"},
+                {"lat": 12.9786, "lng": 77.6410, "text": "Funny incident at the local market, vendor was so witty!", "mood": "funny"},
+                {"lat": 12.9792, "lng": 77.6418, "text": "Feeling a bit down after a tough day at work", "mood": "sad"}
+            ],
+            # Isolated memories (far from clusters - should not form zones)
+            [
+                {"lat": 12.8500, "lng": 77.5000, "text": "Solo trip to outskirts, peaceful but lonely", "mood": "general"},
+                {"lat": 13.1000, "lng": 77.8000, "text": "Work meeting at distant office location", "mood": "general"}
+            ]
+        ]
+        
+        created_memories = []
+        
+        # Create memories using different users
+        for cluster_idx, cluster in enumerate(bangalore_clusters):
+            for memory_idx, memory_data in enumerate(cluster):
+                # Rotate between users
+                user = test_users[memory_idx % len(test_users)]
+                
+                # Temporarily switch to this user's token
+                original_token = self.token
+                self.token = user['token']
+                
+                # Create memory using form data
+                url = f"{self.base_url}/api/memories/upload"
+                headers = {'Authorization': f'Bearer {self.token}'}
+                
+                form_data = {
+                    'latitude': memory_data['lat'],
+                    'longitude': memory_data['lng'],
+                    'content_text': memory_data['text'],
+                    'memory_type': 'text',
+                    'category': memory_data['mood']
+                }
+                
+                try:
+                    response = requests.post(url, data=form_data, headers=headers)
+                    if response.status_code == 200:
+                        memory_response = response.json()
+                        created_memories.append(memory_response)
+                        self.log_test(f"Create Memory {cluster_idx+1}-{memory_idx+1}", True, 
+                                    f"Created at ({memory_data['lat']:.4f}, {memory_data['lng']:.4f})")
+                    else:
+                        self.log_test(f"Create Memory {cluster_idx+1}-{memory_idx+1}", False, 
+                                    f"Status: {response.status_code}")
+                except Exception as e:
+                    self.log_test(f"Create Memory {cluster_idx+1}-{memory_idx+1}", False, f"Exception: {str(e)}")
+                
+                # Restore original token
+                self.token = original_token
+        
+        print(f"   Created {len(created_memories)} memories for zone testing")
+        
+        # Step 3: Test POST /api/zones/generate
+        print("\n🔄 Testing Zone Generation...")
+        
+        success_generate, generate_response = self.run_test(
+            "Zone Generation - POST /api/zones/generate",
+            "POST",
+            "zones/generate",
+            200
+        )
+        
+        zones_created = 0
+        if success_generate and 'zones_created' in generate_response:
+            zones_created = generate_response['zones_created']
+            self.log_test("Zone Generation Count", True, f"Created {zones_created} zones")
+        
+        # Step 4: Test GET /api/zones
+        print("\n📋 Testing Zone Listing...")
+        
+        success_list, zones_list = self.run_test(
+            "Zone Listing - GET /api/zones",
+            "GET",
+            "zones",
+            200
+        )
+        
+        zone_list_valid = False
+        zone_ids = []
+        if success_list and isinstance(zones_list, list):
+            zone_list_valid = True
+            zone_ids = [zone['id'] for zone in zones_list if 'id' in zone]
+            
+            # Validate zone structure
+            for zone in zones_list:
+                required_fields = ['id', 'name', 'description', 'center_latitude', 'center_longitude', 'radius_km', 'memory_count', 'memory_ids']
+                missing_fields = [field for field in required_fields if field not in zone]
+                
+                if missing_fields:
+                    self.log_test(f"Zone Structure Validation", False, f"Missing fields: {missing_fields}")
+                    zone_list_valid = False
+                else:
+                    # Check AI-generated names (should not be just "Memory Zone")
+                    if zone['name'] != "Memory Zone" and len(zone['name']) > 5:
+                        self.log_test(f"AI Zone Naming", True, f"Zone: '{zone['name']}' - '{zone['description']}'")
+                    else:
+                        self.log_test(f"AI Zone Naming", False, f"Generic name: '{zone['name']}'")
+        
+        # Step 5: Test GET /api/zones/{zone_id}
+        print("\n🔍 Testing Individual Zone Details...")
+        
+        zone_detail_success = True
+        if zone_ids:
+            test_zone_id = zone_ids[0]
+            success_detail, zone_detail = self.run_test(
+                f"Zone Details - GET /api/zones/{test_zone_id}",
+                "GET",
+                f"zones/{test_zone_id}",
+                200
+            )
+            
+            if not success_detail:
+                zone_detail_success = False
+        else:
+            self.log_test("Zone Details Test", False, "No zones available to test")
+            zone_detail_success = False
+        
+        # Step 6: Test GET /api/zones/{zone_id}/memories with filters
+        print("\n🎯 Testing Zone Memory Retrieval with Filters...")
+        
+        zone_memories_success = True
+        if zone_ids:
+            test_zone_id = zone_ids[0]
+            
+            # Test 1: Get all memories in zone
+            success_all, memories_all = self.run_test(
+                f"Zone Memories - All (GET /api/zones/{test_zone_id}/memories)",
+                "GET",
+                f"zones/{test_zone_id}/memories",
+                200
+            )
+            
+            # Test 2: Get memories sorted by date
+            success_date, memories_date = self.run_test(
+                f"Zone Memories - Date Sort (GET /api/zones/{test_zone_id}/memories?sort_by=date)",
+                "GET",
+                f"zones/{test_zone_id}/memories?sort_by=date",
+                200
+            )
+            
+            # Validate response structure
+            if success_all and isinstance(memories_all, dict):
+                required_keys = ['zone', 'all_memories', 'friends_memories']
+                missing_keys = [key for key in required_keys if key not in memories_all]
+                
+                if missing_keys:
+                    self.log_test("Zone Memories Structure", False, f"Missing keys: {missing_keys}")
+                    zone_memories_success = False
+                else:
+                    self.log_test("Zone Memories Structure", True, "All required keys present")
+                    
+                    # Check if memories are properly sorted by date (newest first)
+                    all_memories = memories_all.get('all_memories', [])
+                    if len(all_memories) > 1:
+                        dates = [mem.get('created_at', '') for mem in all_memories]
+                        is_sorted = all(dates[i] >= dates[i+1] for i in range(len(dates)-1))
+                        self.log_test("Zone Memories Date Sorting", is_sorted, 
+                                    f"Memories sorted by date: {is_sorted}")
+            else:
+                zone_memories_success = False
+        else:
+            self.log_test("Zone Memories Test", False, "No zones available to test")
+            zone_memories_success = False
+        
+        # Step 7: Test zone clustering logic validation
+        print("\n🧮 Validating Zone Clustering Logic...")
+        
+        clustering_valid = True
+        if success_list and zones_list:
+            for zone in zones_list:
+                memory_count = zone.get('memory_count', 0)
+                radius_km = zone.get('radius_km', 0)
+                
+                # Validate minimum 5 memories per zone
+                if memory_count < 5:
+                    self.log_test("Zone Clustering - Minimum Memories", False, 
+                                f"Zone has only {memory_count} memories (minimum 5 required)")
+                    clustering_valid = False
+                
+                # Validate 2km radius
+                if radius_km != 2.0:
+                    self.log_test("Zone Clustering - Radius", False, 
+                                f"Zone radius is {radius_km}km (expected 2.0km)")
+                    clustering_valid = False
+            
+            if clustering_valid:
+                self.log_test("Zone Clustering Logic", True, "All zones meet clustering requirements")
+        
+        # Step 8: Test authentication requirements for all endpoints
+        print("\n🔐 Testing Zone Authentication Requirements...")
+        
+        original_token = self.token
+        self.token = None
+        
+        auth_tests = [
+            ("zones/generate", "POST"),
+            ("zones", "GET"),
+        ]
+        
+        auth_success = True
+        for endpoint, method in auth_tests:
+            success, _ = self.run_test(
+                f"Zone Auth - {method} {endpoint}",
+                method,
+                endpoint,
+                401
+            )
+            if not success:
+                auth_success = False
+        
+        # Restore token
+        self.token = original_token
+        
+        # Overall assessment
+        print(f"\n📊 ZONE SYSTEM TEST SUMMARY:")
+        print(f"   ✅ Zone Generation: {'PASS' if success_generate else 'FAIL'}")
+        print(f"   ✅ Zone Listing: {'PASS' if zone_list_valid else 'FAIL'}")
+        print(f"   ✅ Zone Details: {'PASS' if zone_detail_success else 'FAIL'}")
+        print(f"   ✅ Zone Memories: {'PASS' if zone_memories_success else 'FAIL'}")
+        print(f"   ✅ Clustering Logic: {'PASS' if clustering_valid else 'FAIL'}")
+        print(f"   ✅ Authentication: {'PASS' if auth_success else 'FAIL'}")
+        print(f"   📈 Zones Created: {zones_created}")
+        
+        return (success_generate and zone_list_valid and zone_detail_success and 
+                zone_memories_success and clustering_valid and auth_success)
+
     def test_invalid_endpoints(self):
         """Test error handling for invalid requests"""
         # Test invalid login
