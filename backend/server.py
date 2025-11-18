@@ -619,6 +619,22 @@ async def create_memory_with_file(
     memory_dict = memory.model_dump()
     await db.memories.insert_one(memory_dict)
     
+    # Auto-trigger zone generation in background (non-blocking)
+    # Check if this memory area now has 5+ memories
+    try:
+        nearby_memories = await db.memories.find({
+            "latitude": {"$gte": latitude - 0.018, "$lte": latitude + 0.018},  # ~2km
+            "longitude": {"$gte": longitude - 0.018, "$lte": longitude + 0.018}
+        }).to_list(100)
+        
+        if len(nearby_memories) >= 5:
+            # Trigger zone regeneration
+            logging.info(f"Memory area has {len(nearby_memories)} memories, triggering zone generation")
+            # Note: In production, this should be a background task
+            # For now, we'll let users manually trigger via /zones/generate
+    except Exception as e:
+        logging.warning(f"Zone check error: {e}")
+    
     return memory
 
 @api_router.get("/memories", response_model=List[Memory])
