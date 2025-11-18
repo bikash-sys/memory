@@ -328,6 +328,41 @@ function MapPage({ token, user, onLogout }) {
 
   const displayedZoneMemories = showFriendsOnly ? friendsMemories : zoneMemories;
 
+  // Get zone color based on dominant mood
+  const getZoneColor = (zone) => {
+    // Determine dominant mood from zone memories
+    const zoneMems = zoneMemories.filter(m => zone.memory_ids.includes(m.id));
+    if (zoneMems.length === 0) return '#9333ea'; // Default purple
+    
+    const moodCounts = {};
+    zoneMems.forEach(mem => {
+      const mood = mem.category || 'general';
+      moodCounts[mood] = (moodCounts[mood] || 0) + 1;
+    });
+    
+    const dominantMood = Object.keys(moodCounts).reduce((a, b) => 
+      moodCounts[a] > moodCounts[b] ? a : b
+    );
+    
+    return CATEGORY_STYLES[dominantMood]?.color || '#9333ea';
+  };
+
+  // Check if memory is inside any zone
+  const isMemoryInZone = (memory) => {
+    return zones.some(zone => {
+      const distance = calculateDistance(
+        memory.latitude,
+        memory.longitude,
+        zone.center_latitude,
+        zone.center_longitude
+      );
+      return distance <= zone.radius_km;
+    });
+  };
+
+  // Filter memories to exclude those in zones
+  const memoriesOutsideZones = memories.filter(memory => !isMemoryInZone(memory));
+
   return (
     <div className="h-[calc(100vh-57px)] flex flex-col bg-slate-900">
       {/* Instruction Banner */}
