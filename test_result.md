@@ -105,27 +105,28 @@
 user_problem_statement: "Replace Google Maps with free alternative (Leaflet + OpenStreetMap), implement auto-generated zones when 5+ memories exist in 2km radius, AI-powered zone names and descriptions using Emergent LLM, zone click to view memories with sorting (date) and filtering (friends only)"
 
 backend:
-  - task: "Google Maps API Key Configuration"
+  - task: "Zone Generation and AI Naming"
     implemented: true
-    working: true
+    working: "NA"
     files:
-      - "/app/frontend/.env"
+      - "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Added Google Maps API key to frontend .env file"
-      - working: true
-        agent: "testing"
         comment: |
-          Google Maps API key configuration verified:
-          - API key AIzaSyBdZQAny1BSNW0eoG5YtN6L-2tmSfy5Oa4 added to frontend/.env
-          - REACT_APP_GOOGLE_MAPS_API_KEY environment variable properly set
-          - Backend testing confirms all location-based features working
-          - Memory creation with latitude/longitude coordinates working
-          - No Google Maps API errors in backend logs
+          Implemented zone generation system:
+          - Added haversine_distance() function for accurate distance calculation
+          - Updated cluster_memories_by_location() to use 2km radius and require minimum 5 memories per zone
+          - Created generate_zone_name_and_description() using Emergent LLM key
+          - Added POST /api/zones/generate endpoint for zone generation
+          - Added GET /api/zones endpoint to retrieve all zones
+          - Added GET /api/zones/{zone_id} endpoint for specific zone details
+          - Added GET /api/zones/{zone_id}/memories endpoint with sorting (date) and filtering (friends only)
+          - Auto-trigger zone check after memory creation
+          - AI generates creative zone names and one-line descriptions based on memory content and mood
 
   - task: "Mood Detection with Gemini API"
     implemented: true
