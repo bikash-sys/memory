@@ -478,8 +478,8 @@ function MapPage({ token, user, onLogout }) {
               );
             })}
 
-            {/* Existing memories */}
-            {memories.map((memory) => {
+            {/* Existing memories - Only show those outside zones */}
+            {memoriesOutsideZones.map((memory) => {
               const style = CATEGORY_STYLES[memory.category] || CATEGORY_STYLES.general;
               return (
                 <Marker
