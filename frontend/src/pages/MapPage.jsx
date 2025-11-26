@@ -380,7 +380,12 @@ function MapPage({ token, user, onLogout }) {
   const handleCancelPin = () => {
     setDroppedPin(null);
     setShowCreateDialog(false);
-    setMemoryForm({ content_text: '', memory_type: 'text', category: 'general', file: null });
+    setAudioBlob(null);
+    if (isRecording && mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+    setMemoryForm({ content_text: '', memory_type: 'text', category: 'general', file: null, visibility: 'public', duration: '7' });
   };
 
   const handleZoneClick = async (zone) => {
