@@ -43,6 +43,16 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 # Create the main app without a prefix
 app = FastAPI()
 
+# Add CORS middleware FIRST (before any routes or mounts)
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
