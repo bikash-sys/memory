@@ -666,11 +666,11 @@ function MapPage({ token, user, onLogout }) {
             </div>
 
             <div>
-              <Label htmlFor="file" className="text-gray-300">Add Photo (Optional)</Label>
+              <Label htmlFor="file" className="text-gray-300">Add Photo or Audio</Label>
               <Input
                 id="file"
                 type="file"
-                accept="image/*"
+                accept="image/*,audio/*"
                 onChange={handleFileChange}
                 className="bg-slate-700 border-slate-600 text-white mt-1"
               />
@@ -678,6 +678,78 @@ function MapPage({ token, user, onLogout }) {
                 <p className="text-xs text-emerald-400 mt-1">✓ {memoryForm.file.name}</p>
               )}
             </div>
+
+            <div>
+              <Label className="text-gray-300">Or Record Voice Note</Label>
+              <div className="flex gap-2 mt-1">
+                {!audioBlob ? (
+                  <Button
+                    type="button"
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={isRecording ? 'bg-red-600 hover:bg-red-700 flex-1' : 'bg-blue-600 hover:bg-blue-700 flex-1'}
+                  >
+                    {isRecording ? '⏹️ Stop Recording' : '🎤 Record Voice'}
+                  </Button>
+                ) : (
+                  <div className="flex gap-2 flex-1">
+                    <Button
+                      type="button"
+                      onClick={deleteVoiceNote}
+                      variant="outline"
+                      className="flex-1 border-slate-600 text-red-400 hover:bg-slate-700"
+                    >
+                      🗑️ Delete
+                    </Button>
+                    <p className="text-xs text-emerald-400 flex items-center">✓ Voice note recorded</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="visibility" className="text-gray-300">Visibility</Label>
+              <Select 
+                value={memoryForm.visibility} 
+                onValueChange={(value) => setMemoryForm({ ...memoryForm, visibility: value })}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="public" className="text-white hover:bg-slate-700">
+                    🌍 Public
+                  </SelectItem>
+                  <SelectItem value="friends" className="text-white hover:bg-slate-700">
+                    👥 Friends (Permanent)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {memoryForm.visibility === 'public' && (
+              <div>
+                <Label htmlFor="duration" className="text-gray-300">Duration</Label>
+                <Select 
+                  value={memoryForm.duration} 
+                  onValueChange={(value) => setMemoryForm({ ...memoryForm, duration: value })}
+                >
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="2" className="text-white hover:bg-slate-700">
+                      ⏱️ 48 Hours
+                    </SelectItem>
+                    <SelectItem value="7" className="text-white hover:bg-slate-700">
+                      📅 7 Days
+                    </SelectItem>
+                    <SelectItem value="0" className="text-white hover:bg-slate-700">
+                      ♾️ Permanent
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-2">
               <Button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white">
