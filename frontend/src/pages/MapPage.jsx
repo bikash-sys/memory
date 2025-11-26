@@ -833,6 +833,10 @@ function MapPage({ token, user, onLogout }) {
                             src={`${BACKEND_URL}${memory.media_url}`} 
                             alt="Memory" 
                             className="w-full h-48 object-cover rounded"
+                            onError={(e) => {
+                              console.error('Image load error:', e.target.src);
+                              e.target.style.display = 'none';
+                            }}
                           />
                         )}
                         {memory.media_url && memory.memory_type === 'voice' && (
