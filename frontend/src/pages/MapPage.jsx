@@ -836,8 +836,15 @@ function MapPage({ token, user, onLogout }) {
                           />
                         )}
                         {memory.media_url && memory.memory_type === 'voice' && (
-                          <audio controls className="w-full mt-2">
+                          <audio 
+                            controls 
+                            className="w-full mt-2"
+                            preload="metadata"
+                            onError={(e) => console.error('Audio playback error:', e)}
+                          >
                             <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/webm" />
+                            <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/ogg" />
+                            <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/mp4" />
                             Your browser does not support audio playback.
                           </audio>
                         )}
