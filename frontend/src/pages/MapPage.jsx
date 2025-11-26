@@ -813,12 +813,18 @@ function MapPage({ token, user, onLogout }) {
                         {memory.content_text && (
                           <p className="text-sm text-gray-300 mb-2">{memory.content_text}</p>
                         )}
-                        {memory.media_url && (
+                        {memory.media_url && memory.memory_type === 'photo' && (
                           <img 
                             src={`${BACKEND_URL}${memory.media_url}`} 
                             alt="Memory" 
                             className="w-full h-48 object-cover rounded"
                           />
+                        )}
+                        {memory.media_url && memory.memory_type === 'voice' && (
+                          <audio controls className="w-full mt-2">
+                            <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/webm" />
+                            Your browser does not support audio playback.
+                          </audio>
                         )}
                       </div>
                     </div>
