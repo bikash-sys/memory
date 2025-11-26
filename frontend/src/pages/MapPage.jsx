@@ -587,12 +587,29 @@ function MapPage({ token, user, onLogout }) {
                       {memory.content_text && (
                         <p className="text-sm text-gray-700 mb-2">{memory.content_text}</p>
                       )}
-                      {memory.media_url && (
+                      {memory.media_url && memory.memory_type === 'photo' && (
                         <img 
                           src={`${BACKEND_URL}${memory.media_url}`} 
                           alt="Memory" 
                           className="w-full h-32 object-cover rounded mt-2"
+                          onError={(e) => {
+                            console.error('Image load error:', e.target.src);
+                            e.target.style.display = 'none';
+                          }}
                         />
+                      )}
+                      {memory.media_url && memory.memory_type === 'voice' && (
+                        <audio 
+                          controls 
+                          className="w-full mt-2"
+                          preload="metadata"
+                          onError={(e) => console.error('Audio playback error:', e)}
+                        >
+                          <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/webm" />
+                          <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/ogg" />
+                          <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/mp4" />
+                          Your browser does not support audio playback.
+                        </audio>
                       )}
                       <p className="text-xs text-gray-500 mt-2">
                         {new Date(memory.created_at).toLocaleString()}
