@@ -722,3 +722,69 @@ agent_communication:
       - Mood detection: ✅ Working
       
       🏆 ZONE SYSTEM READY FOR PRODUCTION!
+
+  - agent: "main"
+    message: |
+      🔧 CRITICAL MEDIA FIXES IMPLEMENTED - Voice Notes & Image Display Issues:
+      
+      USER REPORTED ISSUES:
+      1. Voice notes save but have no sound when played
+      2. Images upload but don't display (broken image icon shows)
+      
+      ROOT CAUSES IDENTIFIED:
+      1. **CORS Headers Missing**: Static files weren't getting CORS headers because CORSMiddleware was added AFTER static mount
+      2. **Audio Codec Issues**: MediaRecorder was using basic 'audio/webm' without codec specification
+      3. **No Audio Format Fallback**: Audio player only supported webm, no fallback formats
+      4. **No Error Handling**: No console logging or fallback for failed media loads
+      
+      FIXES IMPLEMENTED:
+      
+      1. **Backend - CORS Fix** (/app/backend/server.py):
+         - Moved CORSMiddleware to BEFORE static files mount and router inclusion
+         - Added expose_headers: ["*"] to ensure all headers are accessible
+         - Now static files (images, audio) have proper CORS headers
+         - Verified: curl test shows access-control-allow-origin headers present
+      
+      2. **Frontend - Audio Recording Enhancement** (/app/frontend/src/pages/MapPage.jsx):
+         - Added codec specification: 'audio/webm;codecs=opus' as primary format
+         - Added fallback format detection using MediaRecorder.isTypeSupported()
+         - Tries: webm+opus → webm → ogg+opus → mp4
+         - Added console logging: shows audio format, file size after recording
+         - Enhanced toast message: shows recorded file size in KB
+      
+      3. **Frontend - Audio Playback Enhancement** (MapPage.jsx, NearbyPage.jsx, MyMemoriesPage.jsx):
+         - Added multiple <source> elements for format fallback
+         - Supports: audio/webm, audio/ogg, audio/mp4
+         - Added preload="metadata" for faster playback
+         - Added onError handler with console logging
+         - Browser will try each format until one works
+      
+      4. **Frontend - Image Display Enhancement** (All pages):
+         - Added onError handlers to all <img> elements
+         - Console logs failed image URLs for debugging
+         - Fallback behavior: hides broken images or shows initials
+         - ProfilePage: shows username initial if profile pic fails to load
+      
+      5. **Frontend - Voice Note Display** (NearbyPage.jsx, MyMemoriesPage.jsx):
+         - Added missing voice note audio player (was only showing icon)
+         - Now properly displays audio controls for voice memories
+         - Consistent with MapPage implementation
+      
+      FILES MODIFIED:
+      - /app/backend/server.py: CORS middleware repositioning
+      - /app/frontend/src/pages/MapPage.jsx: Audio recording + playback improvements
+      - /app/frontend/src/pages/NearbyPage.jsx: Image error handling + voice playback
+      - /app/frontend/src/pages/MyMemoriesPage.jsx: Image error handling + voice playback
+      - /app/frontend/src/pages/ProfilePage.jsx: Profile picture error handling
+      
+      TESTING VERIFICATION:
+      ✅ Backend restarted successfully (PID 1214)
+      ✅ CORS headers verified on static files
+      ✅ Frontend code updated with proper error handling
+      
+      READY FOR USER TESTING:
+      - Try recording a voice note and playing it back
+      - Try uploading a photo and verifying it displays
+      - Try uploading a profile picture
+      - Check browser console for any errors (should show debug logs)
+      - Test across different memory pages (Map, Nearby, My Memories)
