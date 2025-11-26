@@ -255,9 +255,23 @@ function MapPage({ token, user, onLogout }) {
       formData.append('content_text', memoryForm.content_text);
       formData.append('memory_type', memoryForm.memory_type);
       formData.append('category', memoryForm.category);
+      formData.append('visibility', memoryForm.visibility);
       
+      // Handle duration based on visibility
+      if (memoryForm.visibility === 'public') {
+        formData.append('custom_duration_days', memoryForm.duration);
+      } else {
+        // Friends: always permanent
+        formData.append('custom_duration_days', '0');
+      }
+      
+      // Handle file upload (photo or voice)
       if (memoryForm.file) {
         formData.append('file', memoryForm.file);
+      } else if (audioBlob) {
+        // Voice recording
+        const audioFile = new File([audioBlob], 'voice-note.webm', { type: 'audio/webm' });
+        formData.append('file', audioFile);
       }
 
       await axios.post(`${API}/memories/upload`, formData, {
