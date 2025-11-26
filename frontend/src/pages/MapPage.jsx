@@ -312,7 +312,21 @@ function MapPage({ token, user, onLogout }) {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      
+      // Determine the best supported audio format
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/ogg;codecs=opus';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/mp4';
+          }
+        }
+      }
+      
+      console.log('Using audio format:', mimeType);
+      const recorder = new MediaRecorder(stream, { mimeType });
       const chunks = [];
 
       recorder.ondataavailable = (e) => {
@@ -322,11 +336,12 @@ function MapPage({ token, user, onLogout }) {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const blob = new Blob(chunks, { type: mimeType });
+        console.log('Audio recorded:', blob.size, 'bytes, type:', blob.type);
         setAudioBlob(blob);
         stream.getTracks().forEach(track => track.stop());
         setMemoryForm({ ...memoryForm, memory_type: 'voice' });
-        toast.success('Voice note recorded!');
+        toast.success(`Voice note recorded! (${(blob.size / 1024).toFixed(1)} KB)`);
       };
 
       recorder.start();
