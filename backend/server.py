@@ -664,9 +664,14 @@ async def get_memories(
     now = datetime.now(timezone.utc).isoformat()
     query = {
         "$or": [
-            {"public_until": {"$gt": now}},  # Public memories still active
-            {"user_id": {"$in": friend_ids}},  # Friend memories
-            {"user_id": user_id}  # Own memories
+            # Public temporary memories still active
+            {"visibility": "public", "public_until": {"$gt": now}},
+            # Public permanent memories (no expiration)
+            {"visibility": "public", "public_until": None},
+            # Friend memories (always visible, always permanent)
+            {"visibility": "friends", "user_id": {"$in": friend_ids}},
+            # Own memories (always visible)
+            {"user_id": user_id}
         ]
     }
     
