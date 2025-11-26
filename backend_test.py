@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 class BangaloreMemoryMapTester:
-    def __init__(self, base_url="https://locale-memory.preview.emergentagent.com"):
+    def __init__(self, base_url="https://voice-note-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
