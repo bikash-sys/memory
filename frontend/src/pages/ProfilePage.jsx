@@ -28,11 +28,13 @@ function ProfilePage({ token, user, onLogout }) {
     region: user?.region || ''
   });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [memoryCount, setMemoryCount] = useState(0);
 
   useEffect(() => {
     fetchUserProfile();
     fetchFriends();
     fetchFriendRequests();
+    fetchMemoryCount();
   }, []);
 
   const fetchUserProfile = async () => {
