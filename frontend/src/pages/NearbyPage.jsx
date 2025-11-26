@@ -198,14 +198,32 @@ function NearbyPage({ token }) {
                   </p>
                 )}
 
-                {memory.media_url && (
+                {memory.media_url && memory.memory_type === 'photo' && (
                   <div className="mb-3 rounded-lg overflow-hidden">
                     <img
                       src={memory.media_url.startsWith('http') ? memory.media_url : `${BACKEND_URL}${memory.media_url}`}
                       alt="Memory"
                       className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        console.error('Image load error:', e.target.src);
+                        e.target.style.display = 'none';
+                      }}
                     />
                   </div>
+                )}
+
+                {memory.media_url && memory.memory_type === 'voice' && (
+                  <audio 
+                    controls 
+                    className="w-full mb-3"
+                    preload="metadata"
+                    onError={(e) => console.error('Audio playback error:', e)}
+                  >
+                    <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/webm" />
+                    <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/ogg" />
+                    <source src={`${BACKEND_URL}${memory.media_url}`} type="audio/mp4" />
+                    Your browser does not support audio playback.
+                  </audio>
                 )}
 
                 <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-slate-700">
