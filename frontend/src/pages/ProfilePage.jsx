@@ -228,6 +228,11 @@ function ProfilePage({ token, user, onLogout }) {
                     src={currentUser.profile_picture.startsWith('http') ? currentUser.profile_picture : `${BACKEND_URL}${currentUser.profile_picture}`} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Profile picture load error:', e.target.src);
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = currentUser?.username?.charAt(0).toUpperCase();
+                    }}
                   />
                 ) : (
                   currentUser?.username?.charAt(0).toUpperCase()
