@@ -77,6 +77,17 @@ function ProfilePage({ token, user, onLogout }) {
     }
   };
 
+  const fetchMemoryCount = async () => {
+    try {
+      const response = await axios.get(`${API}/memories/my`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMemoryCount(response.data.length);
+    } catch (error) {
+      console.error('Failed to load memory count', error);
+    }
+  };
+
   const searchUsers = async () => {
     if (!searchQuery.trim()) return;
     
