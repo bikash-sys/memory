@@ -43,11 +43,11 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 # Create the main app without a prefix
 app = FastAPI()
 
-# Mount static files for serving uploads
-app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
-
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
+
+# Mount static files for serving uploads under /api/uploads
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 
 # ===== MODELS =====
