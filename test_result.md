@@ -788,3 +788,32 @@ agent_communication:
       - Try uploading a profile picture
       - Check browser console for any errors (should show debug logs)
       - Test across different memory pages (Map, Nearby, My Memories)
+
+  - agent: "main"
+    message: |
+      🎯 ADDITIONAL FIX - Voice Note Player in Map Pin Popup:
+      
+      USER FEEDBACK:
+      - When clicking memory pins on map, popup shows description, date, time, and photo
+      - But voice note player was missing for voice memories
+      
+      FIX IMPLEMENTED:
+      ✅ Added voice note player to map pin popup (MapPage.jsx)
+      - Popup now checks memory_type and displays appropriate media
+      - Photos: displays image thumbnail
+      - Voice notes: displays audio player with controls
+      - Added same error handling and format fallback as other pages
+      - Supports multiple audio formats: webm, ogg, mp4
+      
+      FILES MODIFIED:
+      - /app/frontend/src/pages/MapPage.jsx: Enhanced Popup component with voice player
+      
+      STATUS:
+      ✅ Frontend compiled successfully
+      
+      NOW COMPLETE:
+      - All memory display locations support both photos AND voice notes
+      - Map pin popup ✅
+      - Zone dialog ✅
+      - Nearby page ✅
+      - My Memories page ✅
