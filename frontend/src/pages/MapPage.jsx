@@ -284,7 +284,8 @@ function MapPage({ token, user, onLogout }) {
       toast.success('Memory created successfully!');
       setShowCreateDialog(false);
       setDroppedPin(null);
-      setMemoryForm({ content_text: '', memory_type: 'text', category: 'general', file: null });
+      setAudioBlob(null);
+      setMemoryForm({ content_text: '', memory_type: 'text', category: 'general', file: null, visibility: 'public', duration: '7' });
       fetchMemories();
       
       // Check if we should regenerate zones
