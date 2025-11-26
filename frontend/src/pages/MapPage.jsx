@@ -297,8 +297,59 @@ function MapPage({ token, user, onLogout }) {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setMemoryForm({ ...memoryForm, file: e.target.files[0] });
+      const file = e.target.files[0];
+      setMemoryForm({ ...memoryForm, file: file });
+      
+      // Determine memory type based on file
+      if (file.type.startsWith('audio/')) {
+        setMemoryForm({ ...memoryForm, file: file, memory_type: 'voice' });
+      } else if (file.type.startsWith('image/')) {
+        setMemoryForm({ ...memoryForm, file: file, memory_type: 'photo' });
+      }
     }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        stream.getTracks().forEach(track => track.stop());
+        setMemoryForm({ ...memoryForm, memory_type: 'voice' });
+        toast.success('Voice note recorded!');
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      toast.info('Recording started...');
+    } catch (error) {
+      toast.error('Failed to access microphone');
+      console.error('Recording error:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const deleteVoiceNote = () => {
+    setAudioBlob(null);
+    setMemoryForm({ ...memoryForm, memory_type: 'text' });
+    toast.info('Voice note deleted');
   };
 
   const handleDetectMood = async () => {
