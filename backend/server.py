@@ -528,7 +528,7 @@ async def upload_profile_photo(
             content = await file.read()
             await f.write(content)
         
-        profile_picture_url = f"/uploads/{file_name}"
+        profile_picture_url = f"/api/uploads/{file_name}"
         
         # Update user profile
         await db.users.update_one(
