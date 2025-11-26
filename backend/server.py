@@ -595,9 +595,13 @@ async def create_memory_with_file(
         visible_to_users_list = []
     
     # Calculate public_until based on visibility and duration
+    # Friends visibility: always permanent (no expiration)
+    # Public visibility: can be temporary (2 days, 7 days) or permanent (null)
     public_until = None
-    if visibility == "public":
+    if visibility == "public" and custom_duration_days and custom_duration_days > 0:
+        # Temporary public memory with expiration
         public_until = (datetime.now(timezone.utc) + timedelta(days=custom_duration_days)).isoformat()
+    # If custom_duration_days is 0 or None, memory is permanent (public_until remains None)
     
     # Create memory
     memory = Memory(
