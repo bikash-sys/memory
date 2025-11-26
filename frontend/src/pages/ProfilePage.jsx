@@ -288,7 +288,7 @@ function ProfilePage({ token, user, onLogout }) {
             {/* Stats */}
             <div className="flex gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-500">0</div>
+                <div className="text-3xl font-bold text-emerald-500">{memoryCount}</div>
                 <div className="text-xs text-gray-400">Memories</div>
               </div>
               <div className="text-center">
