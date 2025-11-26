@@ -585,7 +585,7 @@ async def create_memory_with_file(
             content = await file.read()
             await f.write(content)
         
-        media_url = f"/uploads/{file_name}"
+        media_url = f"/api/uploads/{file_name}"
     
     # Parse visible_to_users JSON string
     import json
