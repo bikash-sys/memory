@@ -96,6 +96,7 @@ class Memory(BaseModel):
     media_url: Optional[str] = None
     memory_type: str  # photo, text, voice
     category: str  # happy, romantic, sad, general
+    season: Optional[str] = None  # summer, winter, spring, autumn
     visibility: str = "public"  # public, friends, specific_friends, private
     visible_to_users: List[str] = Field(default_factory=list)  # For specific_friends
     custom_duration_days: Optional[int] = 7  # Default 1 week for public
