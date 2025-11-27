@@ -750,16 +750,13 @@ function MapPage({ token, user, onLogout }) {
             <div>
               <Label htmlFor="season" className="text-gray-300">Season (Optional)</Label>
               <Select 
-                value={memoryForm.season} 
+                value={memoryForm.season || undefined} 
                 onValueChange={(value) => setMemoryForm({ ...memoryForm, season: value })}
               >
                 <SelectTrigger className="bg-slate-700 border-slate-600 text-white mt-1">
-                  <SelectValue placeholder="Select season..." />
+                  <SelectValue placeholder="Select season (optional)..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="" className="text-gray-400 hover:bg-slate-700">
-                    No Season
-                  </SelectItem>
                   {Object.entries(SEASONS).map(([key, value]) => (
                     <SelectItem key={key} value={key} className="text-white hover:bg-slate-700">
                       {value.emoji} {value.label}
@@ -767,6 +764,17 @@ function MapPage({ token, user, onLogout }) {
                   ))}
                 </SelectContent>
               </Select>
+              {memoryForm.season && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMemoryForm({ ...memoryForm, season: '' })}
+                  className="text-xs text-gray-400 hover:text-white mt-1"
+                >
+                  Clear season
+                </Button>
+              )}
             </div>
 
             <div>
