@@ -136,10 +136,12 @@ function MapPage({ token, user, onLogout }) {
     content_text: '',
     memory_type: 'text',
     category: 'general',
+    season: '',
     file: null,
     visibility: 'public',
     duration: '7' // '2' for 48hrs, '7' for 7 days, '0' for permanent
   });
+  const [seasonFilter, setSeasonFilter] = useState('all');
   const [detectingMood, setDetectingMood] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
