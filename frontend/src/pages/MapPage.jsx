@@ -37,6 +37,14 @@ const CATEGORY_STYLES = {
   general: { color: '#9CA3AF', emoji: '📍', label: 'General' }
 };
 
+// Season options
+const SEASONS = {
+  summer: { emoji: '☀️', label: 'Summer', color: '#FCD34D' },
+  winter: { emoji: '❄️', label: 'Winter', color: '#60A5FA' },
+  spring: { emoji: '🌸', label: 'Spring', color: '#F472B6' },
+  autumn: { emoji: '🍂', label: 'Autumn', color: '#FB923C' }
+};
+
 // Create custom marker icon
 const createCustomIcon = (color, emoji) => {
   return L.divIcon({
