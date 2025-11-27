@@ -659,6 +659,7 @@ async def get_memories(
     lat: Optional[float] = None,
     lng: Optional[float] = None,
     radius: float = 50.0,  # km
+    season: Optional[str] = None,
     user_id: str = Depends(get_current_user)
 ):
     """Get memories - public ones within 1 hour, friend memories forever"""
