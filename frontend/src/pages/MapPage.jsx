@@ -713,6 +713,28 @@ function MapPage({ token, user, onLogout }) {
             </div>
 
             <div>
+              <Label htmlFor="season" className="text-gray-300">Season (Optional)</Label>
+              <Select 
+                value={memoryForm.season} 
+                onValueChange={(value) => setMemoryForm({ ...memoryForm, season: value })}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white mt-1">
+                  <SelectValue placeholder="Select season..." />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="" className="text-gray-400 hover:bg-slate-700">
+                    No Season
+                  </SelectItem>
+                  {Object.entries(SEASONS).map(([key, value]) => (
+                    <SelectItem key={key} value={key} className="text-white hover:bg-slate-700">
+                      {value.emoji} {value.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <Label htmlFor="file" className="text-gray-300">Add Photo or Audio</Label>
               <Input
                 id="file"
