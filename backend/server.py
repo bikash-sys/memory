@@ -698,6 +698,10 @@ async def get_memories(
         query["latitude"] = {"$gte": lat - lat_range, "$lte": lat + lat_range}
         query["longitude"] = {"$gte": lng - lng_range, "$lte": lng + lng_range}
     
+    # Add season filter if provided
+    if season:
+        query["season"] = season
+    
     memories = await db.memories.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
     return memories
 
