@@ -489,6 +489,41 @@ function MapPage({ token, user, onLogout }) {
         </div>
       </div>
 
+      {/* Season Filter */}
+      <div className="bg-slate-800/50 border-b border-slate-700 px-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-300 font-medium">Filter by Season:</span>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={seasonFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => {
+                setSeasonFilter('all');
+                fetchMemories(null);
+              }}
+              className={seasonFilter === 'all' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-slate-600 text-gray-300 hover:bg-slate-700'}
+            >
+              All Seasons
+            </Button>
+            {Object.entries(SEASONS).map(([key, value]) => (
+              <Button
+                key={key}
+                size="sm"
+                variant={seasonFilter === key ? 'default' : 'outline'}
+                onClick={() => {
+                  setSeasonFilter(key);
+                  fetchMemories(key);
+                }}
+                className={seasonFilter === key ? 'text-white' : 'border-slate-600 text-gray-300 hover:bg-slate-700'}
+                style={seasonFilter === key ? { backgroundColor: value.color } : {}}
+              >
+                {value.emoji} {value.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Map */}
       <div className="flex-1 relative">
         {!loading && (
