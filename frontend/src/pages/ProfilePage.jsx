@@ -79,7 +79,7 @@ function ProfilePage({ token, user, onLogout }) {
 
   const fetchMemoryCount = async () => {
     try {
-      const response = await axios.get(`${API}/memories/my`, {
+      const response = await axios.get(`${API}/memories/my/list`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMemoryCount(response.data.length);
