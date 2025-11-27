@@ -847,3 +847,96 @@ agent_communication:
       - Profile page displays actual memory count
       - Count updates when page is reloaded
       - Friends count already working (was not affected)
+
+backend:
+  - task: "Season Filter Feature"
+    implemented: true
+    working: "NA"
+    files:
+      - "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE - Season-based Memory Filtering:
+          
+          USER REQUEST:
+          - Add season selection when creating memories
+          - Add season filter on map to view only specific season memories
+          - Support seasons: Summer, Winter, Spring, Autumn
+          
+          BACKEND IMPLEMENTATION:
+          ✅ Updated Memory Model:
+          - Added optional `season` field (summer, winter, spring, autumn)
+          - Backwards compatible - existing memories have null season
+          
+          ✅ Updated POST /api/memories/upload endpoint:
+          - Added season parameter (optional)
+          - Accepts season value from form
+          - Saves season with memory
+          
+          ✅ Updated GET /api/memories endpoint:
+          - Added season query parameter for filtering
+          - Returns only memories matching selected season
+          - Returns all memories if no season filter applied
+          
+          FILES MODIFIED:
+          - /app/backend/server.py: Memory model + endpoints
+          
+          STATUS:
+          ✅ Backend restarted successfully (PID 341)
+
+frontend:
+  - task: "Season Filter UI"
+    implemented: true
+    working: "NA"
+    files:
+      - "/app/frontend/src/pages/MapPage.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          FRONTEND IMPLEMENTATION - Season Filter UI:
+          
+          ✅ Season Constants Added:
+          - Summer ☀️ (Yellow)
+          - Winter ❄️ (Blue)
+          - Spring 🌸 (Pink)
+          - Autumn 🍂 (Orange)
+          
+          ✅ Memory Creation Form Enhancement:
+          - Added season dropdown selector (optional)
+          - Shows all 4 seasons with emojis
+          - Option to leave blank (No Season)
+          - Sends season to backend on memory creation
+          
+          ✅ Season Filter Bar:
+          - Added filter bar below map header
+          - Shows "All Seasons" + 4 season buttons
+          - Each button has season emoji and label
+          - Active filter button highlighted with season color
+          - Clicking filter fetches only that season's memories
+          
+          ✅ Filter Functionality:
+          - Updated fetchMemories() to accept season parameter
+          - Sends season as query param to backend
+          - Automatically refreshes map with filtered memories
+          - "All Seasons" shows everything
+          
+          FILES MODIFIED:
+          - /app/frontend/src/pages/MapPage.jsx: Season UI + filtering
+          
+          STATUS:
+          ✅ Frontend compiled successfully
+          
+          READY FOR TESTING:
+          - Create memories with different seasons
+          - Use season filter to view only summer/winter/spring/autumn memories
+          - Verify "All Seasons" shows everything
+          - Check that season selection is optional
