@@ -177,10 +177,12 @@ function MapPage({ token, user, onLogout }) {
     }
   };
 
-  const fetchMemories = async () => {
+  const fetchMemories = async (season = null) => {
     try {
+      const params = season && season !== 'all' ? { season } : {};
       const response = await axios.get(`${API}/memories`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params
       });
       setMemories(response.data);
     } catch (error) {
