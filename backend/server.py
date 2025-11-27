@@ -570,6 +570,7 @@ async def create_memory_with_file(
     content_text: Optional[str] = Form(None),
     memory_type: str = Form(...),
     category: Optional[str] = Form("general"),
+    season: Optional[str] = Form(None),
     visibility: Optional[str] = Form("public"),
     visible_to_users: Optional[str] = Form("[]"),
     custom_duration_days: Optional[int] = Form(7),
