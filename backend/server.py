@@ -626,6 +626,7 @@ async def create_memory_with_file(
         media_url=media_url,
         memory_type=memory_type,
         category=category,
+        season=season,
         visibility=visibility,
         visible_to_users=visible_to_users_list,
         custom_duration_days=custom_duration_days,
