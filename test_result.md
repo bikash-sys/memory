@@ -847,6 +847,11 @@ agent_communication:
       - Profile page displays actual memory count
       - Count updates when page is reloaded
       - Friends count already working (was not affected)
+      
+      BUG FIX - Memory Count Not Updating:
+      - Fixed wrong API endpoint: was using /api/memories/my
+      - Changed to correct endpoint: /api/memories/my/list
+      - Memory count now fetches and displays correctly
 
 backend:
   - task: "Season Filter Feature"
