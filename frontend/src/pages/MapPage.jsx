@@ -267,6 +267,9 @@ function MapPage({ token, user, onLogout }) {
       formData.append('content_text', memoryForm.content_text);
       formData.append('memory_type', memoryForm.memory_type);
       formData.append('category', memoryForm.category);
+      if (memoryForm.season) {
+        formData.append('season', memoryForm.season);
+      }
       formData.append('visibility', memoryForm.visibility);
       
       // Handle duration based on visibility
